@@ -14,7 +14,8 @@ class CreateFilasTable extends Migration
     public function up()
     {
         Schema::create('filas', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
+            $table->integer('n_fila');
             $table->timestamps();
         });
     }
