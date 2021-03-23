@@ -18,9 +18,11 @@ class CreateButacasTable extends Migration
             $table->enum('estado',['libre','ocupado'])->default('libre');
             $table->integer('columna_id')->unsigned();
             $table->integer('fila_id')->unsigned();
+            $table->integer('reserva_id')->unsigned();
 
             $table->foreign('columna_id')->references('id')->on('columnas');
             $table->foreign('fila_id')->references('id')->on('filas');
+            $table->foreign('reserva_id')->references('id')->on('reservas');
             
             $table->timestamps();
         });
