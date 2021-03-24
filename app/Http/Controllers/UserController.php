@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -14,8 +17,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::orderBy('id','ASC')->paginate(10);
-        return view('admin.user.index')->with('users',$users);
+        $users = User::orderBy('id', 'ASC')->paginate(10);
+        return view('admin.user.index')->with('users', $users);
     }
 
     /**
@@ -36,10 +39,18 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = new User($request->all());
-        $user->password = bcrypt($request->password);
-        $user->save();
-        return redirect(route('user.index'));
+        try {
+            DB::beginTransaction();
+            $user = new User($request->all());
+            $user->password = bcrypt($request->password);
+            $user->save();
+            DB::commit();
+            Log::info('Se guardo el usuario ' . $request->apellido);
+            return redirect(route('user.index'));
+        } catch (\PDOException $e) {
+            DB::rollBack();
+            Log::error('Error al almacenar el usuario:' . $request->apellido . $e->getMessage());
+        }
     }
 
     /**
@@ -61,8 +72,14 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        $user=User::find($id);
-        return view('admin.user.edit')->with('user',$user);
+        try {
+            $user = User::findOrFail($id);
+            Log::info('Se encontro' . $id);
+        } catch (ModelNotFoundException $exception) {
+            Log::error('No se encontro el modelo ' . $exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput();
+        }
+        return view('admin.user.edit', compact('user'));
     }
 
     /**
@@ -74,11 +91,19 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user=User::find($id);
+        try{
+        DB::beginTransaction();
+        $user = User::find($id);
         $user->fill($request->all());
         $user->password = bcrypt($request->password);
         $user->save();
-         return redirect(route('user.index'));
+        DB::commit();
+        Log::info('Se edito el usuario ' . $request->apellido);
+        }  catch (\PDOException $e) {
+        DB::rollBack();
+        Log::error('Error al editar el usuario ' .$e->getMessage());
+        }
+        return redirect(route('user.index'));
     }
 
     /**
@@ -89,8 +114,14 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user=User::find($id);
-        $user->delete();
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            Log::emergency('Se ilimino el usuario: ' . $id);
+        } catch (ModelNotFoundException $exception) {
+            Log::error('No se encontro el usuario: '.$exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput();
+        }
         return redirect(route('user.index'));
     }
 }
