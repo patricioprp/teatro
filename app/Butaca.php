@@ -9,7 +9,7 @@ class Butaca extends Model
     protected $table = "butacas";
 
     protected $fillable = [
-        'reserva_id','columna_id', 'fila_id', 'estado'
+     'columna_id', 'fila_id', 'estado'
     ];
 
     public function fila()
@@ -23,8 +23,9 @@ class Butaca extends Model
     }
 
 
-    public function reserva()
+    public function reservas()
     {
-        return $this->belongsTo(Reserva::class);
+        return $this->belongsToMany(Reserva::class);
     }
+
 }

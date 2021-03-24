@@ -19,6 +19,7 @@ class Reserva extends Model
 
     public function butacas()
     {
-       return $this->hasMany(Butaca::class);
+       return $this->belongsToMany(Butaca::class);
     }
+
 }
