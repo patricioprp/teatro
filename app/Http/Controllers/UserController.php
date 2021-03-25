@@ -123,7 +123,7 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
             $user->delete();
-            Log::emergency('Se ilimino el usuario: ' . $id);
+            Log::emergency('Se elimino el usuario: ' . $id);
         } catch (ModelNotFoundException $exception) {
             Log::error('No se encontro el usuario: '.$exception->getMessage());
             return back()->withError($exception->getMessage())->withInput();

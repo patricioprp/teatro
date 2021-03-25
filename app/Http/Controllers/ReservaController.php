@@ -47,23 +47,28 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
-        $reserva = new Reserva();
-        $reserva->fecha = $request->fecha;
-
-        $reserva->n_personas = count($request->butacas);
-        $reserva->user_id = $request->user_id;
-        $reserva->save();
-        for($i=0; $i < count($request->butacas); $i++){
-            $reserva->butacas()->sync([$request->butacas[$i]]);
-            $butaca = Butaca::findOrFail($request->butacas[$i]);
-            $butaca->estado = "ocupado";
-            $butaca->save();
+        try{
+            DB::beginTransaction();
+            $reserva = new Reserva();
+            $reserva->fecha = $request->fecha;
+    
+            $reserva->n_personas = count($request->butacas);
+            $reserva->user_id = $request->user_id;
+            $reserva->save();
+            DB::commit();
+            Log::info('Se guardo el usuario ' . $request->user_id);
+            for($i=0; $i < count($request->butacas); $i++){
+                $reserva->butacas()->sync([$request->butacas[$i]]);
+                $butaca = Butaca::findOrFail($request->butacas[$i]);
+                $butaca->estado = "ocupado";
+                $butaca->save();
+            }
+            return redirect()->route('user.show', [$request->user_id]);
+        }catch(\PDOException $e){
+            DB::rollBack();
+            Log::error('Error al almacenar el usuario:' . $request->user_id . $e->getMessage());
         }
 
-
-
-
-        return redirect()->route('user.show', [$request->user_id]);
     }
 
     /**
@@ -85,7 +90,13 @@ class ReservaController extends Controller
      */
     public function edit($id)
     {
-        //
+        try{
+            $reserva = Reserva::findOrFail($id);
+            return view('admin.reserva.edit',compact('reserva'));
+        }catch(ModelNotFoundException $exception){
+            Log::error('No se encontro la reserva: '.$exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput();
+        }
     }
 
     /**
@@ -108,6 +119,14 @@ class ReservaController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try{
+            $reserva = Reserva::findOrFail($id);
+            $reserva->delete();
+            Log::emergency('Se elimino la reserva: ' . $id);
+            return redirect()->back();
+        }catch(ModelNotFoundException $exception){
+            Log::error('No se encontro la reserva '.$exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput(); 
+        }
     }
 }
