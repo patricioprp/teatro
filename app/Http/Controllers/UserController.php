@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('id', 'ASC')->paginate(10);
-        return view('admin.user.index')->with('users', $users);
+        return view('admin.user.index',compact('users'));
     }
 
     /**
@@ -61,7 +61,13 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
+        try{
+            $user = User::findOrFail($id);
+            return view('admin.user.reserva',compact('user'));
+        }catch(ModelNotFoundException $exception){
+            Log::error('No se encontro el modelo ' . $exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput();
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ class CreateReservaButacaTable extends Migration
      */
     public function up()
     {
-        Schema::create('reserva_butaca', function (Blueprint $table) {
+        Schema::create('butaca_reserva', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
 
@@ -31,6 +31,6 @@ class CreateReservaButacaTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reserva_butaca');
+        Schema::dropIfExists('butaca_reserva');
     }
 }

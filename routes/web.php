@@ -24,5 +24,16 @@ Route::group(['prefix' => 'admin'], function(){
       'as' => 'admin.user.destroy'
     ]);
     });
-    
+
+    Route::group(['prefix' => 'admin'], function(){
+      Route::resource('reserva','ReservaController');
+      Route::get('reserva/{id}/crear',[
+        'uses' => 'ReservaController@create',
+        'as' => 'admin.reserva.crear'
+      ]);
+      Route::get('reserva/{id}/destroy',[
+        'uses' => 'ReservaController@destroy',
+        'as' => 'admin.reserva.destroy'
+      ]);
+      });
 Route::get('/home', 'HomeController@index')->name('home');

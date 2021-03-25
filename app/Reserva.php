@@ -9,7 +9,7 @@ class Reserva extends Model
     protected $table = "reservas";
 
     protected $fillable = [
-        'n_personas', 'fecha','user_id'
+        'id','n_personas', 'fecha','user_id'
     ];
 
     public function user()

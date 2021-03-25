@@ -1,8 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Reserva;
+use App\User;
+use App\Butaca;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReservaController extends Controller
 {
@@ -13,7 +18,8 @@ class ReservaController extends Controller
      */
     public function index()
     {
-        //
+        $reservas = Reserva::orderBy('id','ASC')->paginate(10);
+        return view('admin.reserva.index',compact('reservas'));
     }
 
     /**
@@ -21,9 +27,16 @@ class ReservaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($id)
     {
-        //
+        try{
+            $user = User::findOrFail($id);
+            $butacas  = Butaca::where('estado','libre')->get();
+            return view('admin.reserva.create',compact('user','butacas'));
+        }catch(ModelNotFoundException $exception){
+            Log::error('No se encontro el modelo ' . $exception->getMessage());
+            return back()->withError($exception->getMessage())->withInput();
+        }
     }
 
     /**
@@ -34,7 +47,23 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $reserva = new Reserva();
+        $reserva->fecha = $request->fecha;
+
+        $reserva->n_personas = count($request->butacas);
+        $reserva->user_id = $request->user_id;
+        $reserva->save();
+        for($i=0; $i < count($request->butacas); $i++){
+            $reserva->butacas()->sync([$request->butacas[$i]]);
+            $butaca = Butaca::findOrFail($request->butacas[$i]);
+            $butaca->estado = "ocupado";
+            $butaca->save();
+        }
+
+
+
+
+        return redirect()->route('user.show', [$request->user_id]);
     }
 
     /**
