@@ -13,7 +13,7 @@
        <!-- Collect the nav links, forms, and other content for toggling -->
        <div class="collapse navbar-collapse navbar-ex1-collapse">
          <ul class="nav navbar-nav navbar-right">
-           <li class="@yield('programa')"><a href="{{ asset('admin/reserva')}}"><b>Gestionar Reserva</b></a></li>
+           <li class="@yield('reserva')"><a href="{{ asset('admin/reserva')}}"><b>Gestionar Reserva</b></a></li>
            <li class="@yield('usuario')"><a href="{{ asset('admin/user')}}"><b>Gestion de Usuario</b></a></li>
          </ul>
    

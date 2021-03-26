@@ -19,7 +19,7 @@ class Reserva extends Model
 
     public function butacas()
     {
-       return $this->belongsToMany(Butaca::class);
+       return $this->belongsToMany(Butaca::class)->withTimestamps();
     }
 
 }

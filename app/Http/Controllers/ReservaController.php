@@ -55,14 +55,14 @@ class ReservaController extends Controller
             $reserva->n_personas = count($request->butacas);
             $reserva->user_id = $request->user_id;
             $reserva->save();
-            DB::commit();
-            Log::info('Se guardo el usuario ' . $request->user_id);
             for($i=0; $i < count($request->butacas); $i++){
-                $reserva->butacas()->sync([$request->butacas[$i]]);
+                $reserva->butacas()->attach($request->butacas[$i]);
                 $butaca = Butaca::findOrFail($request->butacas[$i]);
                 $butaca->estado = "ocupado";
                 $butaca->save();
             }
+            DB::commit();
+            Log::info('Se guardo la reserva del usuario ' . $request->user_id);
             return redirect()->route('user.show', [$request->user_id]);
         }catch(\PDOException $e){
             DB::rollBack();
@@ -92,7 +92,8 @@ class ReservaController extends Controller
     {
         try{
             $reserva = Reserva::findOrFail($id);
-            return view('admin.reserva.edit',compact('reserva'));
+            $butacas = Butaca::where('estado','libre')->get();
+            return view('admin.reserva.edit',compact('reserva','butacas'));
         }catch(ModelNotFoundException $exception){
             Log::error('No se encontro la reserva: '.$exception->getMessage());
             return back()->withError($exception->getMessage())->withInput();
@@ -108,7 +109,36 @@ class ReservaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try{
+            
+            DB::beginTransaction();
+            $reserva_vieja = Reserva::findOrFail($id);
+            foreach($reserva_vieja->butacas as $Butaca){    
+                $butaca = Butaca::findorFail($Butaca->id);
+                $butaca->estado = 'libre';
+                $butaca->save();
+            }
+            $reserva_vieja->delete();
+
+            $reserva = new Reserva();
+            $reserva->fecha =$request->fecha;
+            $butacas_totales  = array_merge($request->butacas_actual, $request->butacas_disponibles);
+            $reserva->n_personas = count($butacas_totales);
+            $reserva->user_id = $request->user_id;
+            $reserva->save();
+            foreach($butacas_totales as $ButacaT){    
+                $reserva->butacas()->attach($ButacaT);  
+                $butacaN = Butaca::findorFail($ButacaT);
+                $butacaN->estado = 'ocupado';
+                $butacaN->save();
+            }
+            DB::commit();
+            return redirect()->route('user.show', [$request->user_id]);
+            Log::info('Se edito correctamente la reserva ');
+        }catch(\PDOException $e){
+            DB::rollBack();
+            Log::error('Error al editar la reserva'. $e->getMessage());
+        }
     }
 
     /**
@@ -120,7 +150,12 @@ class ReservaController extends Controller
     public function destroy($id)
     {
         try{
-            $reserva = Reserva::findOrFail($id);
+            $reserva = Reserva::findOrFail($id);      
+            foreach($reserva->butacas as $Butaca){     
+                $butaca = Butaca::findorFail($Butaca->id);
+                $butaca->estado = 'libre';
+                $butaca->save();
+            }
             $reserva->delete();
             Log::emergency('Se elimino la reserva: ' . $id);
             return redirect()->back();

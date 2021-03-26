@@ -20,7 +20,7 @@
            <td>{{$reserva->id}}</td>
            <td>{{$reserva->n_personas}}</td>
            <td>{{ $reserva->fecha }}</td>
-           <td>{{$reserva->user->name, $reserva->user->apellido}}</td>
+           <td>{{$reserva->user->name}}-{{ $reserva->user->apellido}}</td>
            <td>
              <a href="{{route('admin.reserva.destroy',$reserva->id)}}" onclick="return confirm('Desea eliminar a {{$reserva->fecha}}')" class="btn btn-danger" title="Eliminar"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
              <a href="{{route('reserva.edit',$reserva->id)}}" class="btn btn-warning" title="Editar"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
